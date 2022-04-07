@@ -1,5 +1,7 @@
 # 百度新闻爬虫（正则实现）
 import re
+import time
+
 import requests
 
 headers = {
@@ -28,7 +30,8 @@ def baidu_news(keyword):
 
 def save_baidu_news(keyword):
     url = "https://www.baidu.com/s?rtt=1&tn=news&word=" + keyword
-    res = requests.get(url, headers=headers).text
+    # 设置超时时间为10秒
+    res = requests.get(url, headers=headers, timeout=10).text
     # print(res)
     pattern_date = '<span class="c-color-gray2 c-font-normal c-gap-right-xsmall".*?>(.*?)</span>'
     pattern_source = '<span class="c-color-gray".*?>(.*?)</span>'
@@ -55,5 +58,7 @@ if __name__ == '__main__':
         try:
             # baidu_news(keyword)
             save_baidu_news(keyword)
+            # 等待3秒，以免触发百度的反爬机制
+            time.sleep(3)
         except:
             print(keyword + '百度新闻爬取失败')
