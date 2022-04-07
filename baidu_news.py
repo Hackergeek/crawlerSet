@@ -51,5 +51,8 @@ def save_baidu_news(keyword):
 if __name__ == '__main__':
     keywords = ['华能信托', '阿里巴巴', '百度集团']
     for keyword in keywords:
-        # baidu_news(keyword)
-        save_baidu_news(keyword)
+        try:
+            # baidu_news(keyword)
+            save_baidu_news(keyword)
+        except:
+            print(keyword + '百度新闻爬取失败')
