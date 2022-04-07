@@ -38,7 +38,7 @@ def save_baidu_news(keyword):
     news_source = re.findall(pattern_source, res)
     news_title = re.findall(pattern_title, res, re.S)
     news_href = re.findall(pattern_href, res)
-    file = open('./baidu_news.txt', 'a')
+    file = open('./baidu_news.txt', 'a', encoding='utf-8')
     file.write(keyword + '数据挖掘完毕！' + '\n\n')
     for i in range(len(news_title)):
         news_title[i] = re.sub('<.*?>', '', news_title[i])
