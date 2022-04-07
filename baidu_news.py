@@ -8,7 +8,8 @@ headers = {
 
 
 def baidu_news(keyword):
-    url = "https://www.baidu.com/s?rtt=1&tn=news&word=" + keyword
+    # rtt=4按时间排序
+    url = "https://www.baidu.com/s?rtt=4&tn=news&word=" + keyword
     res = requests.get(url, headers=headers).text
     # print(res)
     pattern_date = '<span class="c-color-gray2 c-font-normal c-gap-right-xsmall".*?>(.*?)</span>'
