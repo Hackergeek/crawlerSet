@@ -1,8 +1,10 @@
 import akshare as ak
 from selenium import webdriver
 import pandas as pd
+from pandas import DataFrame
 from selenium.webdriver.common.by import By
 import time
+
 # 使用akshare需要安装msgpack orjson yaml tomlkit ujson这些模块
 # 股票代码、股票名称、所属行业、当前股价、市盈率、市净率、审计机构、净资产（股东权益）、总市值、股息率、过去十年市净率、过去十年净利润、过去十年现金分红金额。
 '''
@@ -49,7 +51,7 @@ def valuation_analysis(output_path):
 def filter(input_path, output_path):
     table = pd.read_csv(input_path)
     # 股票代码用0补足六位
-    table['股票代码']  = table['股票代码'].apply(lambda x:str(x).zfill(6))
+    table['股票代码'] = table['股票代码'].apply(lambda x: str(x).zfill(6))
     # table['股票代码'] = table['股票代码'].apply(lambda x: '{:0>6d}'.format(x))
     # 删除未命名的列
     table = table.drop(columns='Unnamed: 0')
@@ -87,13 +89,7 @@ def dividend_rate(input_path, output_path):
     table['日期'] = '2022-05-18'
     for i in table.index:
         stock_code = str(table.iloc[i]['股票代码']).zfill(6)
-        print(stock_code)
-        # if stock_code.startswith('60'):
-        #     stock_code = 'sh' + stock_code
-        # else:
-        #     stock_code = 'sz' + stock_code
-        # data = ak.stock_hk_eniu_indicator(indicator='市值', symbol=stock_code)
-        # print(data)
+        # print(stock_code)
         data = ak.stock_a_lg_indicator(symbol=stock_code)
         table.loc[i, '市值'] = data.iloc[0]['total_mv']
         table.loc[i, '股息率'] = data.iloc[0]['dv_ratio']
@@ -105,7 +101,7 @@ def filter_final(input_path, output_path):
     table = pd.read_csv(input_path)
     # 删除股息率为空，0的结果
     table = table.drop(table[(table['股息率'] <= 0.0)
-                             ].index)
+                       ].index)
     # 刪除任意列為 NaN 值的行
     table = table.dropna()
     # 删除市值小于100亿的结果
@@ -114,6 +110,28 @@ def filter_final(input_path, output_path):
     # 删除未命名的列
     table = table.drop(columns='Unnamed: 0')
     # print(table)
+    table.to_csv(output_path)
+
+
+def score(data_frame: DataFrame, key, ascending=True):
+    data_frame.sort_values(by=[key], inplace=True, ascending=ascending)
+    count = len(data_frame)
+    for i in data_frame.index:
+        data_frame.loc[i, '分数'] = data_frame.loc[i, '分数'] + count
+        count -= 1
+    print(data_frame.sort_values(by=['分数'], ascending=False))
+
+
+def sort_and_score(input_path, output_path):
+    table = pd.read_csv(input_path)
+    # 删除未命名的列
+    table = table.drop(columns='Unnamed: 0')
+    table['分数'] = 0
+    score(data_frame=table, key='市净率')
+    score(data_frame=table, key='PE(静)')
+    score(data_frame=table, key='股息率', ascending=False)
+    table.sort_values(by=['分数'], inplace=True, ascending=False)
+    table.sort_values(by=['所属行业'], inplace=True, ascending=False)
     table.to_csv(output_path)
 
 
@@ -126,4 +144,5 @@ if __name__ == '__main__':
     dividend_rate('format.csv', 'dividend_rate.csv')
     # 最终清洗
     filter_final('dividend_rate.csv', 'final_result.csv')
-
+    # 统分
+    sort_and_score('final_result.csv', 'stock_score.csv')
